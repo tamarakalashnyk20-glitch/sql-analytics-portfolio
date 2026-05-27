@@ -1,0 +1,73 @@
+--Combine tables with email metrics and account metrics using UNION ALL.
+final AS (
+SELECT
+      date,
+      country,
+      send_interval,
+      is_verified,
+      is_unsubscribed,
+      0 as account_cnt,
+      sent_msg,
+      open_msg,
+      visit_msg
+FROM email_metrics
+UNION ALL
+SELECT
+      date,
+      country,
+      send_interval,
+      is_verified,
+      is_unsubscribed,
+      account_cnt,
+      0 as sent_msg,
+      0 as open_msg,
+      0 as visit_msg
+FROM registration
+),
+
+
+
+--Merge zero values from the union table and aggregate the data.
+agregation_cte as (
+SELECT
+      date,
+      country,
+      send_interval,
+      is_verified,
+      is_unsubscribed,
+      sum(account_cnt) as account_cnt,
+      sum(sent_msg) as sent_msg,
+      sum(open_msg) as open_msg,
+      sum(visit_msg) as visit_msg
+FROM final
+GROUP BY 1, 2, 3, 4, 5
+),
+
+
+
+--Retrieve all data from the previous table and add metrics for the total number of created subscribers and total sent emails by country.
+total_cte as(
+SELECT
+      *,
+      SUM(account_cnt) OVER (PARTITION BY country) AS total_country_account_cnt,
+      SUM(sent_msg) OVER (PARTITION BY country) AS total_country_sent_cnt
+FROM agregation_cte
+),
+
+
+
+--Retrieve all calculated data from the previous table and add country rankings based on accounts and sent emails.
+rank_cte as (
+SELECT
+      *,
+      DENSE_RANK () over (order by total_country_account_cnt) as rank_total_country_account_cnt,
+      DENSE_RANK () over (order by total_country_sent_cnt) as rank_total_country_sent_cnt
+FROM total_cte
+)
+
+
+--Final query with filtering applied.
+SELECT *
+FROM rank_cte
+WHERE rank_total_country_account_cnt <= 10 or rank_total_country_sent_cnt <= 10
+ORDER BY date, country
