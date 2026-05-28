@@ -1,11 +1,11 @@
-# sql-analytics-portfolio
-## SQL Query Description
 ## E-commerce Account & Email Activity Analysis 
 
 This project focuses on analyzing customer account creation and email engagement activity using SQL in BigQuery and data visualization in Looker Studio. The analysis combines account metrics and email interaction data to evaluate user behavior across different countries and customer segments.
 
 The SQL query was built using CTEs, window functions, aggregations, joins, UNION ALL operations, and ranking calculations to generate key business metrics such as account registrations, sent emails, email opens, visits, and country-level performance indicators.
 
+## Dashboard Preview
+![Dashboard Preview](Account_and_Messaging_Performance.pdf)
 
 The interactive dashboard visualizes:
 
